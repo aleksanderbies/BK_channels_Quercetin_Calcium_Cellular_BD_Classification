@@ -3,57 +3,44 @@ from sklearn.preprocessing import StandardScaler
 from sklearn import decomposition
 import matplotlib.pyplot as plt
 
-def draw_classes_scatterplot(X, y, title):
+
+def draw_classes_scatterplot(X, y, title, class_list, colors):
     """
     This function draws scatterplot of classified objects
     :param X: Values of time series
     :param y: class of time series
     :param title: title of graph
+    :param class_list: list of classifications classes
+    :param colors: list of colors of points in scatterplot
     """
 
     Z = np.c_[X, y]
-    pred_1 = []
-    pred_0 = []
+    predictions = [ [] for i in range(len(class_list)) ]
 
     for i in range(Z.shape[0]):
-        if Z[:, -1][i] == 1:
-            pred_1.append(Z[i])
-        else:
-            pred_0.append(Z[i])
-
-    pred_1 = np.array(pred_1)
-    pred_0 = np.array(pred_0)
-
-    pred_1 = np.delete(pred_1, -1, axis=1)
-
+        for _class in range(len(class_list)):
+            if Z[:, -1][i] == _class:
+                predictions[_class].append(Z[i])
+                
+    for i in range(len(predictions)):
+        predictions[i] = np.array(predictions[i])
+        predictions[i] = np.delete(predictions[i], -1, axis=1)
+        
     scaler = StandardScaler()
     pca = decomposition.PCA(n_components=3)
 
-    pred_0 = np.delete(pred_0, -1, axis=1)
+    for i in range(len(predictions)):
+        scaler.fit(predictions[i])
+        predictions[i] = scaler.transform(predictions[i])
 
-    scaler.fit(pred_0)
-
-    pred_0 = scaler.transform(pred_0)
-
-    pca.fit(pred_0)
-
-    pred_0 = pca.transform(pred_0)
-
-    scaler.fit(pred_1)
-
-    pred_1 = scaler.transform(pred_1)
-
-    pca.fit(pred_1)
-
-    pred_1 = pca.transform(pred_1)
+        pca.fit(predictions[i])
+        predictions[i] = pca.transform(predictions[i])
 
     plt.figure(figsize=(6, 6))
-
     ax = plt.axes(projection='3d')
 
-    ax.scatter(pred_1[:, 0], pred_1[:, 1], pred_1[:, 2], alpha=0.8, c="blue", label="No-Que")
-
-    ax.scatter(pred_0[:, 0], pred_0[:, 1], pred_0[:, 2], alpha=0.8, c="red", label="Que")
+    for i in range(len(predictions)):
+        ax.scatter(predictions[i][:, 0], predictions[i][:, 1], predictions[i][:, 2], alpha=0.8, c=colors[i], label=class_list[i])
 
     plt.title(title)
     plt.legend(loc=2)

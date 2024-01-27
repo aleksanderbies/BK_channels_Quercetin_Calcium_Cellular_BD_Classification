@@ -23,11 +23,14 @@ def run_model(model, X, y, scoring="accuracy", cv=StratifiedKFold(n_splits=4, ra
     
     y_pred = model.predict(X)
     
-    y_pred_proba = model.predict_proba(X)
-    skplt.metrics.plot_roc(y, y_pred_proba, ax=ax2)
-     
-def run_distance_based_model(model, X, y):
-    k_values = range(1, 21)
+    try:
+        y_pred_proba = model.predict_proba(X)
+        skplt.metrics.plot_roc(y, y_pred_proba, ax=ax2)
+    except AttributeError:
+        print("This classifier has no attribute 'predict_proba' ")
+        
+def find_n_neighbors(model, X, y, n):
+    k_values = range(1, n)
     accuracy_values = []
 
     for k in k_values:
@@ -36,14 +39,14 @@ def run_distance_based_model(model, X, y):
         accuracy = model.score(X, y)
         accuracy_values.append(accuracy)
 
-    plt.figure(figsize=(4,4))    
+    plt.figure(figsize=(8,4))    
     plt.plot(k_values, accuracy_values, marker='o')
     plt.title('Classification accuracy depending on the number of neighbors (k)')
     plt.xlabel('Number of neighbors (k)')
     plt.ylabel('Accuracy score')
     plt.show()
     
-def test_distance_based_model(model, X, y, scoring="accuracy", cv=StratifiedKFold(n_splits=4, random_state=0, shuffle=True)):
+def test_model(model, X, y, scoring="accuracy", cv=StratifiedKFold(n_splits=4, random_state=0, shuffle=True)):
     scores = cross_val_score(model, X, y, cv=cv, scoring=scoring)
     print(f" CV Scores: {scores}")
     print(f" CV Mean score: {np.mean(scores)}")
@@ -59,5 +62,8 @@ def test_distance_based_model(model, X, y, scoring="accuracy", cv=StratifiedKFol
     
     y_pred = model.predict(X)
     
-    y_pred_proba = model.predict_proba(X)
-    skplt.metrics.plot_roc(y, y_pred_proba, ax=ax2)
+    try:
+        y_pred_proba = model.predict_proba(X)
+        skplt.metrics.plot_roc(y, y_pred_proba, ax=ax2)
+    except AttributeError:
+        print("This classifier has no attribute 'predict_proba' ")
